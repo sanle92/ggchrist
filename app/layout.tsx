@@ -1,3 +1,4 @@
+import { getSiteSettings } from '@/lib/site-settings';
 import type { Metadata, Viewport } from 'next';
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
@@ -9,7 +10,7 @@ import './globals.css';
 
 const { NEXT_PUBLIC_SITE_URL } = getPublicEnv();
 
-export const metadata: Metadata = {
+const defaultMetadata: Metadata = {
   metadataBase: new URL(NEXT_PUBLIC_SITE_URL),
   title: {
     default: 'Glorious Gospel of Christ',
@@ -34,6 +35,15 @@ export const metadata: Metadata = {
   },
   twitter: { card: 'summary_large_image', images: ['/images/premium-bible-hero.webp'] },
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const title = settings?.seo_defaults?.title || settings?.ministry_name || 'Glorious Gospel of Christ';
+  const description = settings?.seo_defaults?.description || defaultMetadata.description;
+  return { ...defaultMetadata, title: { default: title, template: `%s | ${settings?.ministry_name || 'Glorious Gospel of Christ'}` }, description,
+    openGraph: { ...defaultMetadata.openGraph, title, description },
+  };
+}
 
 export const viewport: Viewport = { themeColor: '#142b3f' };
 

@@ -167,7 +167,7 @@ export async function POST(request: Request) {
       { status: 401 },
     );
   if (input.action === "like") {
-    const { data: existing } = await supabase
+    const { data: existing, error: readError } = await supabase
       .from("content_reactions")
       .select("id")
       .eq("user_id", userId)
@@ -175,6 +175,10 @@ export async function POST(request: Request) {
       .eq("content_id", input.contentId)
       .eq("reaction", "like")
       .maybeSingle();
+    if (readError) {
+      console.error("Like lookup failed", readError.code);
+      return NextResponse.json({ error: "Likes are temporarily unavailable." }, { status: 503 });
+    }
     const operation = existing
       ? supabase.from("content_reactions").delete().eq("id", existing.id)
       : supabase
@@ -190,7 +194,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Your like could not be saved. Confirm Migration 011 is installed.",
+            "Your like could not be saved. Please try again later.",
         },
         { status: 400 },
       );
@@ -226,7 +230,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Your comment could not be submitted. Confirm Migration 011 is installed.",
+            "Your comment could not be submitted. Please try again later.",
         },
         { status: 400 },
       );

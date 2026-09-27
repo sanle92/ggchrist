@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   const userAgent = request.headers.get('user-agent') || '';
   const device = deviceDetails(userAgent);
   const countryCode = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry') || request.headers.get('x-country-code');
-  const countryName = countryCode ? new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode) || countryCode : null;
+  const countryName = countryCode && /^[A-Z]{2}$/.test(countryCode) ? new Intl.DisplayNames(['en'], { type: 'region' }).of(countryCode) || countryCode : null;
   const city = decodedHeader(request.headers.get('x-vercel-ip-city') || request.headers.get('cf-ipcity') || request.headers.get('x-city'));
   const supabase = await createClient();
   const { error } = await supabase.rpc('track_analytics', {

@@ -1,3 +1,4 @@
+import { getSiteSettings } from "@/lib/site-settings";
 import type { Metadata } from "next";
 import {
   ArrowUpRight,
@@ -23,6 +24,7 @@ export default async function ContactPage({
   searchParams: Promise<{ sent?: string; error?: string }>;
 }) {
   const params = await searchParams;
+  const settings = await getSiteSettings();
   return (
     <>
       <PageHero
@@ -67,6 +69,8 @@ export default async function ContactPage({
               </p>
             </div>
           </div>
+          {settings?.support_email ? <a href={`mailto:${settings.support_email}`} className="text-sm font-semibold">{settings.support_email}</a> : null}
+          {settings?.contact_phone ? <a href={`tel:${settings.contact_phone}`} className="text-sm font-semibold">{settings.contact_phone}</a> : null}
           <a
             href="/community?tab=prayers"
             className="group flex items-center justify-between rounded-[1.5rem] border border-border bg-surface p-5 text-sm font-bold text-forest shadow-shadow"

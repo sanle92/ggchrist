@@ -7,6 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "tsc --noEmit",
+    "test:access": "node tests/access-database.test.mjs",
     "test:giving": "node --experimental-strip-types --test tests/giving.test.mjs && node tests/giving-database.test.mjs",
     "build:cloudflare": "opennextjs-cloudflare build",
     "preview": "npm run build:cloudflare && opennextjs-cloudflare preview",

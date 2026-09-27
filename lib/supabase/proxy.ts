@@ -23,5 +23,20 @@ export async function updateSession(request: NextRequest) {
   );
 
   await supabase.auth.getClaims();
+  const path = request.nextUrl.pathname;
+  // Payment callbacks and donor management remain available during maintenance.
+  if (!path.startsWith('/api/stripe/') && !path.startsWith('/api/giving/') && !path.startsWith('/giving/') && !path.startsWith('/auth/')) {
+    const { data: settings } = await supabase.from('site_settings').select('maintenance_mode,community_enabled,donations_enabled').eq('id', true).maybeSingle();
+    const unavailable = settings?.maintenance_mode ||
+      (settings?.community_enabled === false && (path === '/community' || path === '/api/engagement')) ||
+      (settings?.donations_enabled === false && path === '/donate');
+    if (unavailable) {
+      const blocked = path.startsWith('/api/')
+        ? NextResponse.json({ error: 'This feature is temporarily unavailable.' }, { status: 503 })
+        : new NextResponse('<!doctype html><html lang="en"><meta name="viewport" content="width=device-width"><title>Temporarily unavailable</title><body><main><h1>We’ll be back soon</h1><p>This part of the website is temporarily unavailable. Please try again later.</p></main></body></html>', { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Retry-After': '300' } });
+      response.cookies.getAll().forEach(cookie => blocked.cookies.set(cookie));
+      return blocked;
+    }
+  }
   return response;
 }

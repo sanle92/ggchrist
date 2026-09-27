@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, Instagram, Mail, MapPin, Youtube } from "lucide-react";
 
+import { getSiteSettings } from "@/lib/site-settings";
+import { NewsletterForm } from "@/components/newsletter-form";
+
 const links = [
   [
     "Discover",
@@ -21,7 +24,9 @@ const links = [
   ],
 ] as const;
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const settings = await getSiteSettings();
+  const social = settings?.social_links || {};
   return (
     <footer className="border-t border-white/10 bg-[#081827] text-white">
       <div className="ggc-shell py-14 md:py-20">
@@ -41,18 +46,15 @@ export function SiteFooter() {
             </p>
             <div className="mt-6 flex items-center justify-center gap-2 lg:justify-start">
               <a
-                href="mailto:hello@ggchrist.org"
+                href={`mailto:${settings?.support_email || "hello@ggchrist.org"}`}
                 className="grid size-10 place-items-center border border-white/15 text-white/60 hover:border-amber hover:text-amber"
                 aria-label="Email"
               >
                 <Mail size={16} />
               </a>
-              <span className="grid size-10 place-items-center border border-white/15 text-white/60">
-                <Instagram size={16} />
-              </span>
-              <span className="grid size-10 place-items-center border border-white/15 text-white/60">
-                <Youtube size={17} />
-              </span>
+              {social.instagram ? <a href={social.instagram} aria-label="Instagram" className="grid size-10 place-items-center border border-white/15 text-white/60"><Instagram size={16} /></a> : null}
+              {social.youtube ? <a href={social.youtube} aria-label="YouTube" className="grid size-10 place-items-center border border-white/15 text-white/60"><Youtube size={17} /></a> : null}
+              {social.facebook ? <a href={social.facebook} className="text-sm text-white/70">Facebook</a> : null}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-6 text-center lg:text-left">
@@ -84,6 +86,7 @@ export function SiteFooter() {
               Begin with today’s Scripture, then continue with reflection, audio
               and prayer.
             </p>
+            <NewsletterForm />
             <Link href="/devotions" className="btn-nav btn-amber mt-5 w-full">
               Open today’s devotion <ArrowRight size={14} />
             </Link>
@@ -93,7 +96,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="flex flex-col gap-4 pt-7 text-center text-[.61rem] uppercase tracking-[.14em] text-white/35 sm:flex-row sm:items-center sm:justify-between sm:text-left">
-          <p>© {new Date().getFullYear()} Glorious Gospel of Christ</p>
+          <p>© {new Date().getFullYear()} {settings?.ministry_name || "Glorious Gospel of Christ"}</p>
           <div className="flex justify-center gap-5 sm:justify-start">
             <Link href="/about">Privacy</Link>
             <Link href="/about">Terms</Link>
