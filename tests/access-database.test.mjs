@@ -26,7 +26,10 @@ await assert.rejects(db.exec(`insert into contact_messages(first_name,email,subj
 await db.exec('reset role');
 await db.exec(sql('016_restore_application_access'));
 await db.exec(sql('016_restore_application_access'));
+await db.exec(sql('017_analytics_overview'));
+await db.exec(sql('017_analytics_overview'));
 await db.exec('set role anon');
+await assert.rejects(db.exec('select analytics_overview()'), /permission denied/);
 await db.exec(`insert into contact_messages(first_name,email,subject,message) values('Test','test@test.test','Hello','A contact message');
 insert into subscribers(email) values('subscriber@test.test');
 select track_analytics('${member}','${member}','page_view','/','',null,null,null,null,'UTC','mobile');
@@ -54,5 +57,27 @@ assert.equal((await db.query('select count(*)::int n from contact_messages')).ro
 assert.equal((await db.query('select count(*)::int n from analytics_events')).rows[0].n, 0);
 assert.equal((await db.query("update site_settings set ministry_name='Forbidden' returning id")).rows.length, 0);
 await assert.rejects(db.exec('select * from api_secrets'), /permission denied/);
+assert.equal((await db.query("select analytics_overview() as data")).rows[0].data.page_views, 0);
+await db.exec(`reset role;
+insert into analytics_events(session_id,visitor_id,event_type,path,device_type,occurred_at)
+select gen_random_uuid(),gen_random_uuid(),'page_view','/articles','desktop', now() - interval '1 hour' from generate_series(1,1200);
+insert into analytics_events(session_id,visitor_id,event_type,path,device_type,occurred_at)
+values(gen_random_uuid(),gen_random_uuid(),'page_view','/old','desktop',now()-interval '100 days');
+set role authenticated; select set_config('request.jwt.claim.sub','${admin}',false);`);
+const overview = (await db.query("select analytics_overview(30,'Africa/Kampala') as data")).rows[0].data;
+assert.equal(overview.page_views, 1201);
+assert.equal(overview.visitors, 1201);
+assert.equal(overview.trend.length, 30);
+assert.equal(overview.trend.reduce((total, day) => total + day.views, 0), 1201);
+assert.deepEqual(overview.rankings.devices, [['desktop',1200],['mobile',1]]);
+assert.equal(overview.history.length, 100);
+assert.equal((await db.query("select analytics_overview(999,'Invalid/Zone') as data")).rows[0].data.trend.length, 30);
+await db.exec(`reset role; update admin_users set role='content_manager' where user_id='${admin}';
+set role authenticated; select set_config('request.jwt.claim.sub','${admin}',false);`);
+await db.exec("insert into article_series(title,slug) values('Content manager edit','content-manager'); update impact_metrics set meals=42 where id=true;");
+assert.equal((await db.query("update site_settings set ministry_name='Not allowed' returning id")).rows.length,0);
+await db.exec(`reset role; update admin_users set role='viewer' where user_id='${admin}'; set role authenticated;`);
+await assert.rejects(db.exec("insert into article_series(title,slug) values('No permission','viewer-write')"), /row-level security/);
 await db.close();
+console.log('PASS: analytics aggregates more than 1,000 events, fills empty days, respects dates and RLS, and handles invalid settings.');
 console.log('PASS: repair is repeatable; contact, newsletter, likes, admin edits, giving and analytics work; member and anonymous restrictions remain enforced.');

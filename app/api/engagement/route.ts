@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase/service";
 
 export const runtime = "nodejs";
 
@@ -43,18 +42,18 @@ function sameOrigin(request: Request) {
 }
 
 async function engagementState(
+  supabase: Awaited<ReturnType<typeof createClient>>,
   contentTypeValue: keyof typeof targetTables,
   contentId: string,
   userId?: string,
 ) {
-  const service = createServiceClient();
-  const [{ data: target }, { data: comments }, reaction] = await Promise.all([
-    service
+  const [{ data: target, error: targetError }, { data: comments, error: commentsError }, reaction] = await Promise.all([
+    supabase
       .from(targetTables[contentTypeValue])
       .select("like_count,comment_count,share_count")
       .eq("id", contentId)
       .maybeSingle(),
-    service
+    supabase
       .from("comments")
       .select("id,author_name,author_avatar_url,body,created_at")
       .eq("content_type", contentTypeValue)
@@ -64,7 +63,7 @@ async function engagementState(
       .order("created_at", { ascending: true })
       .limit(100),
     userId
-      ? service
+      ? supabase
           .from("content_reactions")
           .select("id")
           .eq("user_id", userId)
@@ -72,8 +71,9 @@ async function engagementState(
           .eq("content_id", contentId)
           .eq("reaction", "like")
           .maybeSingle()
-      : Promise.resolve({ data: null }),
+      : Promise.resolve({ data: null, error: null }),
   ]);
+  if (targetError || commentsError || reaction.error || !target) throw new Error("Engagement state unavailable");
   return {
     counts: {
       likes: Number(target?.like_count || 0),
@@ -86,7 +86,7 @@ async function engagementState(
   };
 }
 
-export async function GET(request: Request) {
+async function getEngagement(request: Request) {
   const url = new URL(request.url);
   const parsed = targetSchema.safeParse({
     contentType: url.searchParams.get("contentType"),
@@ -107,7 +107,7 @@ export async function GET(request: Request) {
   ]);
   if (error)
     return NextResponse.json(
-      { error: "Engagement requires Migration 011." },
+      { error: "Engagement is temporarily unavailable. Please try again later." },
       { status: 503 },
     );
   if (!available)
@@ -117,6 +117,7 @@ export async function GET(request: Request) {
     );
   return NextResponse.json(
     await engagementState(
+      supabase,
       parsed.data.contentType,
       parsed.data.contentId,
       claims?.claims?.sub,
@@ -124,7 +125,7 @@ export async function GET(request: Request) {
   );
 }
 
-export async function POST(request: Request) {
+async function postEngagement(request: Request) {
   if (!sameOrigin(request))
     return NextResponse.json(
       { error: "Invalid request origin." },
@@ -141,6 +142,12 @@ export async function POST(request: Request) {
   const { data: claims } = await supabase.auth.getClaims();
   const userId = claims?.claims?.sub;
 
+  const { data: available, error: targetError } = await supabase.rpc("is_public_engagement_target", {
+    p_content_type: input.contentType, p_content_id: input.contentId,
+  });
+  if (targetError) throw new Error("Engagement target lookup failed");
+  if (!available) return NextResponse.json({ error: "This content is unavailable." }, { status: 404 });
+
   if (input.action === "share") {
     const { error } = await supabase.rpc("record_content_share", {
       p_content_type: input.contentType,
@@ -150,14 +157,12 @@ export async function POST(request: Request) {
     if (error)
       return NextResponse.json(
         {
-          error: error.message.includes("function")
-            ? "Sharing requires Migration 011."
-            : "This share could not be recorded.",
+          error: "This share could not be recorded. Please try again later.",
         },
         { status: 400 },
       );
     return NextResponse.json(
-      await engagementState(input.contentType, input.contentId, userId),
+      await engagementState(supabase, input.contentType, input.contentId, userId),
     );
   }
 
@@ -236,6 +241,7 @@ export async function POST(request: Request) {
       );
   }
   const response = await engagementState(
+    supabase,
     input.contentType,
     input.contentId,
     userId,
@@ -248,3 +254,14 @@ export async function POST(request: Request) {
         : undefined,
   });
 }
+
+// Return a usable JSON error even when authentication or a database read fails.
+async function respond(handler: (request: Request) => Promise<NextResponse>, request: Request) {
+  try { return await handler(request); }
+  catch {
+    console.error('Engagement request failed');
+    return NextResponse.json({ error: 'Engagement is temporarily unavailable. Please try again later.' }, { status: 503 });
+  }
+}
+export async function GET(request: Request) { return respond(getEngagement, request); }
+export async function POST(request: Request) { return respond(postEngagement, request); }

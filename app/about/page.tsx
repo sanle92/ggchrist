@@ -1,3 +1,4 @@
+import { MinistryImpact } from "@/components/ministry-impact";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -146,6 +147,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      <MinistryImpact />
       <section className="ggc-shell pb-24 md:pb-36">
         <div className="rounded-[2.75rem] bg-amber px-7 py-16 text-center text-white md:px-14 md:py-24">
           <Heart size={28} fill="currentColor" className="mx-auto" />

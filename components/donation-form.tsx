@@ -34,18 +34,20 @@ export function DonationForm({
   purposes,
   publishableKey,
   initialCampaignId = "",
+  defaultCurrency = "USD",
 }: {
   campaigns: GivingCampaign[];
   purposes: string[];
   publishableKey: string | null;
   initialCampaignId?: string;
+  defaultCurrency?: Currency;
 }) {
   const [stripePromise] = useState(() =>
     publishableKey ? loadStripe(publishableKey).catch(() => null) : null,
   );
   const [currency, setCurrency] = useState<Currency>(
     (campaigns.find((c) => c.id === initialCampaignId)?.currency as Currency) ||
-      "USD",
+      defaultCurrency,
   );
   const [amount, setAmount] = useState(currency === "UGX" ? "50000" : "50");
   const [frequency, setFrequency] = useState<"one_time" | "monthly">(

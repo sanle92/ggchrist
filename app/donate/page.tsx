@@ -1,3 +1,5 @@
+import { getSiteSettings } from "@/lib/site-settings";
+import { currencies, type Currency } from "@/lib/giving/shared";
 import type { Metadata } from "next";
 import { Heart, BookOpen, Globe, ArrowRight, LockKeyhole } from "lucide-react";
 import { DonationForm, type GivingCampaign } from "@/components/donation-form";
@@ -62,6 +64,8 @@ export default async function DonatePage({
       .order("sort_order"),
     getApiSecret("stripe_publishable_key").catch(() => null),
   ]);
+  const settings = await getSiteSettings();
+  const defaultCurrency = currencies.includes(settings?.default_currency) ? settings.default_currency as Currency : "USD";
   const campaigns = (rows || []) as GivingCampaign[],
     selected = campaigns.find(
       (c) => c.slug === params.campaign || c.id === params.campaign,
@@ -144,7 +148,7 @@ export default async function DonatePage({
                 the ministry or choose an active campaign below.
               </p>
             ) : null}
-            <DonationForm
+            <DonationForm defaultCurrency={defaultCurrency}
               key={selected?.id || "general"}
               campaigns={campaigns}
               purposes={purposeRows?.map((p) => p.name) || defaults}
