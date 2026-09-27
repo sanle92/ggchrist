@@ -1,0 +1,261 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-playfair: "Newsreader", Georgia, serif;
+  --color-cream: #f7f4ed;
+  --color-cream2: #efeae0;
+  --color-cream3: #e5ddcf;
+  --color-forest: #142b3f;
+  --color-forest2: #1d3b55;
+  --color-forest3: #315a76;
+  --color-brand: #142b3f;
+  --color-brand2: #1d3b55;
+  --color-amber: #ff8300;
+  --color-amber2: #e76f00;
+  --color-amber3: #ffb35c;
+  --color-ink: #12263a;
+  --color-ink2: #34495b;
+  --color-ink3: #687985;
+  --color-muted: #8b969e;
+  --color-surface: #fffdf8;
+  --color-surface2: #f1ede5;
+  --color-border: #dfd9ce;
+  --color-border2: #e5b776;
+  --shadow-shadow: 0 12px 40px rgba(18, 38, 58, 0.07);
+  --shadow-shadow2: 0 30px 90px rgba(18, 38, 58, 0.14);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-radius: 0.4rem !important;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply overflow-x-hidden bg-cream font-sans text-ink antialiased;
+    background-image: radial-gradient(
+      rgba(20, 43, 63, 0.035) 0.7px,
+      transparent 0.7px
+    );
+    background-size: 13px 13px;
+  }
+  ::selection {
+    @apply bg-amber text-white;
+  }
+  a,
+  button,
+  input,
+  textarea,
+  select {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button {
+    cursor: pointer;
+  }
+  input,
+  textarea,
+  select {
+    @apply bg-surface text-ink outline-none transition;
+  }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    @apply border-amber ring-4 ring-amber/10;
+  }
+  img {
+    max-width: 100%;
+  }
+}
+
+:root {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-cream: #071522;
+  --color-cream2: #0b1b29;
+  --color-cream3: #12283a;
+  --color-forest: #f3f6f8;
+  --color-forest2: #dce7ed;
+  --color-forest3: #9eb5c3;
+  --color-ink: #f7f3ea;
+  --color-ink2: #d4dde2;
+  --color-ink3: #9aabb5;
+  --color-muted: #7e919d;
+  --color-surface: #0d1e2d;
+  --color-surface2: #102434;
+  --color-border: #263b4a;
+  --color-border2: #7c552d;
+  --shadow-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  --shadow-shadow2: 0 30px 90px rgba(0, 0, 0, 0.32);
+}
+
+@layer components {
+  .ggc-shell {
+    margin-inline: auto;
+    width: min(1160px, calc(100% - 2rem));
+  }
+  .ggc-card {
+    @apply rounded-[1.75rem] border border-border bg-surface shadow-shadow;
+  }
+  .btn-nav {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-[0.68rem] font-bold uppercase tracking-[0.14em] transition duration-300;
+  }
+  .btn-forest {
+    @apply bg-brand text-white shadow-[0_12px_28px_rgba(20,43,63,.18)] hover:-translate-y-0.5 hover:bg-brand2 hover:shadow-[0_18px_36px_rgba(20,43,63,.25)];
+  }
+  .btn-amber {
+    @apply bg-amber text-white shadow-[0_12px_28px_rgba(255,131,0,.18)] hover:-translate-y-0.5 hover:bg-amber2 hover:shadow-[0_18px_36px_rgba(255,131,0,.25)];
+  }
+  .btn-outline {
+    @apply border border-forest/18 bg-surface/60 text-forest backdrop-blur hover:-translate-y-0.5 hover:border-forest/35 hover:bg-surface;
+  }
+  .section-kicker {
+    @apply inline-flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-[0.24em] text-amber;
+  }
+  .section-kicker::before {
+    content: "";
+    width: 1.75rem;
+    height: 1px;
+    background: currentColor;
+  }
+  .section-heading {
+    @apply font-serif text-[clamp(2.65rem,5vw,5.4rem)] font-medium leading-[.94] tracking-[-0.035em] text-ink;
+  }
+  .premium-rule {
+    @apply h-px bg-gradient-to-r from-transparent via-amber/45 to-transparent;
+  }
+  .eyebrow-chip {
+    @apply inline-flex rounded-full border border-amber/25 bg-amber/8 px-3 py-1.5 text-[0.6rem] font-bold uppercase tracking-[0.18em] text-amber2;
+  }
+  .community-label {
+    @apply text-[0.64rem] font-bold uppercase tracking-[0.2em];
+  }
+  .community-primary {
+    @apply inline-flex h-11 items-center justify-center gap-2 rounded-full bg-amber px-5 text-[0.67rem] font-bold uppercase tracking-[0.12em] text-white shadow-[0_10px_24px_rgba(255,131,0,.2)] transition hover:-translate-y-px hover:bg-amber2;
+  }
+  .prose {
+    @apply text-[1.04rem] leading-8 text-ink2;
+  }
+  .prose h2 {
+    @apply mb-4 mt-12 font-serif text-4xl leading-tight text-ink;
+  }
+  .prose h3 {
+    @apply mb-3 mt-9 font-serif text-2xl text-ink;
+  }
+  .prose p {
+    @apply my-5;
+  }
+  .prose ul,
+  .prose ol {
+    @apply my-5 pl-6;
+  }
+  .prose ul {
+    @apply list-disc;
+  }
+  .prose ol {
+    @apply list-decimal;
+  }
+  .prose blockquote {
+    @apply my-9 rounded-r-2xl border-l-2 border-amber bg-amber/5 py-4 pl-7 pr-5 font-serif text-2xl italic leading-relaxed text-forest;
+  }
+  .prose a {
+    @apply font-semibold text-forest underline decoration-amber/55 underline-offset-4;
+  }
+  .field {
+    @apply h-12 w-full rounded-xl border border-border bg-surface px-4 text-sm outline-none;
+  }
+  .field-area {
+    @apply w-full rounded-xl border border-border bg-surface p-4 text-sm outline-none;
+  }
+}
+
+.theme-logo-dark {
+  display: none;
+}
+:root[data-theme="dark"] .theme-logo-light {
+  display: none;
+}
+:root[data-theme="dark"] .theme-logo-dark {
+  display: block;
+}
+
+@keyframes soft-rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slow-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(-1deg);
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.soft-rise {
+  animation: soft-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.soft-rise-delay {
+  animation-delay: 0.14s;
+}
+.slow-float {
+  animation: slow-float 8s ease-in-out infinite;
+}
+.marquee-track {
+  animation: marquee 26s linear infinite;
+}
+
+@media (max-width: 640px) {
+  .ggc-shell {
+    width: min(100% - 1.25rem, 1160px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Giving keeps the shared theme while providing visible keyboard focus and
+   comfortable mobile inputs. Dark text makes the amber action accessible. */
+.giving-page .btn-amber {
+  color: #142b3f;
+}
+.giving-form :is(input:not([type="checkbox"]), select, textarea) {
+  font-size: 16px;
+}
+.giving-page :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #4b7ea3;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .giving-page * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

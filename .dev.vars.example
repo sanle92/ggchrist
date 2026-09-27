@@ -1,0 +1,2 @@
+NEXTJS_ENV=development
+# Add runtime values from .env.example to your ignored .dev.vars file.
